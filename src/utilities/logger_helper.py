@@ -18,7 +18,7 @@ def get_logger(
     log_format: str = DEFAULT_FORMAT,
     log_time_format: str = DEFAULT_TIME_FORMAT,
     log_time_rotation: str = DEFAULT_TIME_ROTATION,
-    log_time_interval: int = DEFAULT_TIME_INTERVAL,    
+    log_time_interval: int = DEFAULT_TIME_INTERVAL,
     log_name: str = None,
 ) -> logging.Logger:
     """Create a new root logger and sets its formatting and handlers.
@@ -28,9 +28,9 @@ def get_logger(
         log_level (int, optional): File logging level. Defaults to logging.INFO.
         console_level (int, optional): Console logging level. Defaults to logging.INFO.
         log_format (str, optional): Log message format. Defaults to DEFAULT_FORMAT.
-        log_time_format (str, optional): Log time format. Defaults to DEFAULT_TIME_FORMAT
-        log_time_rotation (str, optional): When log time 
-        log_time_interval (str, optional): Log time interval
+        log_time_format (str, optional): Log time format. Defaults to DEFAULT_TIME_FORMAT.
+        log_time_rotation (str, optional): Log time rotation (seconds, minutes, hours, day of week, midnight). Defaults to DEFAULT_TIME_ROTATION.
+        log_time_interval (int, optional): Log time interval when log should rotate. Defaults to DEFAULT_TIME_INTERVAL.
         log_name (str, optional): Log name. Defaults to None.
 
     Returns:
@@ -48,9 +48,11 @@ def get_logger(
     file_handler = RotatingFileHandler(filename=log_file, maxBytes=1000 * 1000)
     file_handler.setLevel(level=log_level)
     file_handler.setFormatter(fmt=log_format)
-    new_logger.addHandler(hdlr=file_handler)
+    # adding both file handler and timed handler will duplicate log output inside log file.
+    # new_logger.addHandler(hdlr=file_handler)
+    # TODO: Add both handlers without duplicate output.
 
-    # Setup time handler - log file will rotate at midnight
+    # Setup time handler - log file will rotate at midnight by default.
     time_handler = TimedRotatingFileHandler(
         filename=log_file, when=log_time_rotation, interval=log_time_interval
     )
@@ -58,7 +60,7 @@ def get_logger(
     time_handler.setFormatter(fmt=log_format)
     new_logger.addHandler(hdlr=time_handler)
 
-    # Setup stream handler - what we see in terminal
+    # Setup stream handler - what we see in terminal. Has different log level than time and file handler.
     stream_handler = logging.StreamHandler(stream=sys.stdout)
     stream_handler.setLevel(level=console_level)
     stream_handler.setFormatter(fmt=log_format)
